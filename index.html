@@ -697,7 +697,7 @@
             const password = document.getElementById('loginPassword').value;
 
             try {
-                const { data: { session }, error: authError } = await supabase.auth.signInWithPassword({
+                const {  { session }, error: authError } = await supabase.auth.signInWithPassword({
                     email,
                     password,
                 });
@@ -705,7 +705,7 @@
                 if (authError) throw authError;
 
                 const userId = session.user.id;
-                const { data: userData, error: userError } = await supabase
+                const {  userData, error: userError } = await supabase
                     .from('users')
                     .select('*')
                     .eq('id', userId)
@@ -742,7 +742,7 @@
             const password = document.getElementById('signupPassword').value;
 
             try {
-                const { data: { user }, error: authError } = await supabase.auth.signUp({
+                const {  { user }, error: authError } = await supabase.auth.signUp({
                     email: email,
                     password: password,
                 });
@@ -981,7 +981,7 @@
                         kegiatan_id: currentEventIdForAttendance,
                         user_id: currentUser.id,
                         foto_selfie_url: selfieUrl,
-                        ttd_data: currentSignatureDataUrl, // Fixed typo
+                        ttd_ currentSignatureDataUrl, // Fixed typo
                         lokasi_absen_lat: currentLocationCoords.lat,
                         lokasi_absen_lng: currentLocationCoords.lng
                     }]);
@@ -1027,7 +1027,7 @@
 
         async function loadEventsList() {
             try {
-                const { data: events, error } = await supabase
+                const {  events, error } = await supabase
                     .from('kegiatan')
                     .select(`
                         id,
@@ -1076,7 +1076,7 @@
                     ? supabase.from('absensi').select(`*, kegiatan(nama_kegiatan), users(nama_lengkap)`)
                     : supabase.from('absensi').select(`*, kegiatan(nama_kegiatan)`).eq('user_id', currentUser.id);
 
-                const { data: attendanceRecords, error } = await query;
+                const {  attendanceRecords, error } = await query;
 
                 if (error) throw error;
 
@@ -1113,7 +1113,7 @@
                  return;
             }
             try {
-                const { data: users, error } = await supabase
+                const {  users, error } = await supabase
                     .from('users')
                     .select('*')
                     .order('nama_lengkap');
@@ -1170,7 +1170,7 @@
                 document.getElementById('detailEventDateTime').textContent = `Tanggal & Waktu: ${new Date(event.tanggal_waktu).toLocaleString()}`;
                 document.getElementById('detailEventLocation').textContent = `Lokasi: ${event.lokasi}`;
 
-                const { data: attendees, error: attError } = await supabase
+                const {  attendees, error: attError } = await supabase
                     .from('absensi')
                     .select(`
                         id,
@@ -1231,10 +1231,10 @@
         };
 
         // Check active session on page load
-        supabase.auth.getSession().then(async ({ data: { session } }) => {
+        supabase.auth.getSession().then(async ({  { session } }) => {
             if (session) {
                 const userId = session.user.id;
-                const { data: userData, error: userError } = await supabase
+                const {  userData, error: userError } = await supabase
                     .from('users')
                     .select('*')
                     .eq('id', userId)
