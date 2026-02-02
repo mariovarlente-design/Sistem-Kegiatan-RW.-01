@@ -529,22 +529,23 @@
 </div>
 
 <script>
-    // 1. Inisialisasi Supabase Client
-    // Gunakan environment variable dari Netlify
-    const SUPABASE_URL = window.env?.SUPABASE_URL || 'YOUR_FALLBACK_SUPABASE_URL'; // Ganti YOUR_FALLBACK_SUPABASE_URL jika perlu, atau biarkan untuk menampilkan error
-    const SUPABASE_ANON_KEY = window.env?.SUPABASE_ANON_KEY || 'YOUR_FALLBACK_ANON_KEY'; // Ganti YOUR_FALLBACK_ANON_KEY jika perlu, atau biarkan untuk menampilkan error
+    // 1. Inisialisasi Supabase Client (Hanya jika kredensial tersedia)
+    const SUPABASE_URL = window.env?.SUPABASE_URL || 'YOUR_FALLBACK_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = window.env?.SUPABASE_ANON_KEY || 'YOUR_FALLBACK_ANON_KEY';
 
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL === 'YOUR_FALLBACK_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_FALLBACK_ANON_KEY') {
         alert('Konfigurasi Supabase belum disetel di environment variable!');
         console.error("Supabase credentials are missing!");
-        // Opsional: Setel ke string kosong atau nilai default jika tidak ditemukan, tapi error lebih baik
-        // const SUPABASE_URL = '';
-        // const SUPABASE_ANON_KEY = '';
+        // Hentikan eksekusi script jika kredensial tidak valid
+        throw new Error("Missing Supabase credentials");
     }
 
-    // Hanya lanjutkan jika kredensial tersedia
-    if (SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_URL !== 'YOUR_FALLBACK_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_FALLBACK_ANON_KEY') {
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Inisialisasi client di sini karena kredensial valid
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Bungkus logika utama dalam IIFE async untuk mengizinkan await di level atas
+    (async function main() {
+        console.log("Script Supabase dimulai...");
 
         // State variables
         let currentUser = null;
@@ -981,7 +982,7 @@
                         kegiatan_id: currentEventIdForAttendance,
                         user_id: currentUser.id,
                         foto_selfie_url: selfieUrl,
-                        ttd_ currentSignatureDataUrl, // Fixed typo
+                        ttd_ currentSignatureDataUrl,
                         lokasi_absen_lat: currentLocationCoords.lat,
                         lokasi_absen_lng: currentLocationCoords.lng
                     }]);
@@ -1152,7 +1153,7 @@
             eventsListView.classList.add('hidden');
             document.getElementById('attendanceListContainer').innerHTML = '<p>Memuat daftar hadir...</p>';
             try {
-                const { data: event, error: eventError } = await supabase
+                const {  event, error: eventError } = await supabase
                     .from('kegiatan')
                     .select(`
                         id,
@@ -1231,35 +1232,34 @@
         };
 
         // Check active session on page load
-        supabase.auth.getSession().then(async ({  { session } }) => {
-            if (session) {
-                const userId = session.user.id;
-                const {  userData, error: userError } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('id', userId)
-                    .single();
+        const {  { session } } = await supabase.auth.getSession();
+        if (session) {
+            const userId = session.user.id;
+            const {  userData, error: userError } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', userId)
+                .single();
 
-                if (userError) {
-                    console.error('Error fetching user data on load:', userError.message);
-                    return;
-                }
-
-                currentUser = userData;
-                welcomeUserSpan.textContent = currentUser.nama_lengkap;
-                if (currentUser.role === 'admin' || currentUser.role === 'pengurus') {
-                    adminPanelButtonDiv.classList.remove('hidden');
-                }
-                loginFormContainer.classList.add('hidden');
-                dashboardContainer.classList.remove('hidden');
+            if (userError) {
+                console.error('Error fetching user data on load:', userError.message);
+                // Optionally redirect to login or show error
+                return;
             }
-        });
 
-    } else {
-        console.error("Exiting script due to missing Supabase credentials.");
-    }
+            currentUser = userData;
+            welcomeUserSpan.textContent = currentUser.nama_lengkap;
+            if (currentUser.role === 'admin' || currentUser.role === 'pengurus') {
+                adminPanelButtonDiv.classList.remove('hidden');
+            }
+            loginFormContainer.classList.add('hidden');
+            dashboardContainer.classList.remove('hidden');
+        }
+
+    })(); // Tutup IIFE
 
 </script>
 
 </body>
 </html>
+
